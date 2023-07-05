@@ -1,3 +1,5 @@
 {{ $p := split . "(" }}
 {{ $name := index $p 0 }}
+{{ $p = split $name "[" }}
+{{ $name = trim (index $p 0) " " }}
 {{ return $name }}

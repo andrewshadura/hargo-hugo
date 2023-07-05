@@ -1,4 +1,4 @@
-module github.com/andrewshadura/hargo-hugo
+module github.com/andrewshadura/hugo-fietswinkel
 
 go 1.19
 

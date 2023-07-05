@@ -59,6 +59,7 @@
   color: $text-color;
   border-color: $light;
 
+  &:checked,
   &:active,
   &:hover,
   &.focus,

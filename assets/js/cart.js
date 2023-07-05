@@ -109,8 +109,10 @@ var Cart = {
                 const item = e.target.dataset
                 let cartitem = {}
                 for (const key in item) {
-                    const name = key.replace("item", "").toLowerCase()
-                    cartitem[name] = item[key]
+                    if (key.startsWith("item")) {
+                        const name = key.replace("item", "").toLowerCase()
+                        cartitem[name] = item[key]
+                    }
                 }
                 cartitem["price"] = Math.floor(parseFloat(cartitem["price"]) * 100)
                 Cart.add(cartitem)

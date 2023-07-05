@@ -13,8 +13,8 @@
   {{ end }}
 {{ else }}
   {{ $coverImage := $page.Resources.GetMatch "cover.jpg" }}
-  {{ $coverImage = $coverImage.Resize "1600x q83 picture Lanczos" }}
   {{ if $coverImage }}
+  {{ $coverImage = $coverImage.Resize "1600x q83 picture Lanczos" }}
   {{ $images = $images | append $coverImage }}
   {{ end }}
   {{ range $page.Resources.Match "*.jpg" }}

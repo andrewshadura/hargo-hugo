@@ -10,7 +10,7 @@
   {{- partial "components/opengraph" . }}
   
   <!-- theme meta -->
-  <meta name="theme-name" content="hargo-hugo" />
+  <meta name="theme-name" content="hugo-fietsenwinkel" />
 
   {{ "<!-- Plugins -->" | safeHTML }}
   {{ range site.Params.plugins.css }}
@@ -22,7 +22,7 @@
   <link rel="stylesheet" href="{{ $styles.Permalink }}" media="screen">
 
   {{ "<!-- Favicon -->" | safeHTML }}
-  <link rel="shortcut icon" href="{{ `images/favicon.png` | absURL }} " type="image/x-icon">
+  <link rel="shortcut icon" href="{{ `images/favicon.png` | absURL }}" type="image/x-icon">
   <link rel="icon" href="{{ `images/favicon.png` | absURL }} " type="image/x-icon">
 
   {{- range .AlternativeOutputFormats }}

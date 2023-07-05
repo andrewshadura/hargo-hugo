@@ -7,7 +7,7 @@ Quantity:
 Subtotal:
   other: Subtotaal
 Delete:
-  other: Verwijder
+  other: Verwĳder
 Continue shopping:
   other: Verder winkelen
 Proceed to checkout:
@@ -20,11 +20,78 @@ Free:
   other: Vrĳ
 Collect in person:
   other: Afhalen
-Packeta:
-  other: Packeta
 Choose delivery:
   other: Verzendmethode
 Shipping:
   other: Verzendkosten
 Select collection point:
   other: Kies een ophaalpunt
+Products List:
+  other: In ons aanbod
+See more products:
+  other: Bekĳk het aanbod
+Ean:
+  other: EAN
+This category is currently empty, but we’re working hard to prepare it for you!:
+  other: Er zĳn geen producten in deze categorie
+Available in:
+  other: 'Beschikbaar binnen {{ . }}'
+Available in (other sizes):
+  other: 'Andere maten beschikbaar binnen {{ . }}'
+Available sizes:
+  one: 'Nu beschikbaar: maat {{ first .Sizes }}'
+  other: 'Nu beschikbaar: maten {{ delimit .Sizes ", " }}'
+Lead time:
+  other: 'Bestelbaar met levertĳd {{ .Count }} dagen'
+Lead time weeks:
+  other: 'Bestelbaar met levertĳd {{ .Count }} weken'
+Lead time other sizes:
+  other: 'Andere maten bestelbaar met levertĳd {{ .Count }} dagen'
+Other sizes:
+  other: Andere maten
+Contact:
+  other: Contact
+Contact us:
+  other: Stuur ons een bericht
+Your Name:
+  other: Uw naam
+Name:
+  other: Uw naam
+Your Email:
+  other: Uw e-mailadres
+Email:
+  other: Uw e-mailadres
+Message:
+  other: Uw bericht
+Your Message:
+  other: Uw bericht
+Send:
+  other: Versturen
+Send Now:
+  other: Versturen
+Connect with us:
+  other: Contactgegevens
+White:
+  other: Wit
+Yellow:
+  other: Geel
+Brown:
+  other: Bruin
+Black:
+  other: Zwart
+Red:
+  other: Rood
+Green:
+  other: Groen
+Grey:
+  other: Grĳs
+Orange:
+  other: Oranje
+Blue:
+  other: Blauw
+More colours available:
+  one: 'Nog één kleur beschikbaar'
+  few: 'Nog {{ .Count }} meer kleuren beschikbaar'
+  other: 'Nog {{ .Count }} meer kleuren beschikbaar'
+Read more:
+  other: Lees meer

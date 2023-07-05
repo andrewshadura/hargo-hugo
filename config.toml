@@ -13,6 +13,7 @@ currencySymbol = "€"
 
 [outputs]
 home = ['HTML', 'RSS', 'HeurekaFeed20']
+product_alias = ['HTML']
 
 [outputFormats.JS]
 mediaType = "text/javascript"

@@ -40,7 +40,9 @@
             </a>
             <div class="dropdown-menu">
               {{ range $i, $e := $languages }}
+              {{ if $e.LanguageName }}
               <a class="dropdown-item" href="{{ relref $page (dict "path" "/" "lang" $e.Lang) }}">{{ $e.LanguageName }}</a>
+              {{ end }}
               {{ end }}
             </div>
           </li>

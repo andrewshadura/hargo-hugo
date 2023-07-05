@@ -1,3 +1,18 @@
-{{ $p := split . "(" }}
-{{ $rgb := index (split (index $p 1) ")") 0 }}
-{{ return $rgb }}
+{{- $p := split . "(" }}
+{{- $rgb := "" }}
+{{- $rgbs := index (split (index $p 1) ")") 0 }}
+{{- if strings.Contains $rgbs "-" }}
+{{-   $rgb1 := index (split $rgbs "-") 0 }}
+{{-   $rgb2 := index (split $rgbs "-") 1 }}
+{{-   $rgb3 := index (split $rgbs "-") 2 }}
+{{-   $rgb = printf "linear-gradient(to bottom right, %s 0%%, %s 50%%, %s 100%%)" $rgb1 $rgb2 $rgb3 }}
+{{- else }}
+{{-   $rgb1 := index (split $rgbs "/") 0 }}
+{{-   $rgb2 := index (split $rgbs "/") 1 }}
+{{-   if $rgb2 }}
+{{-     $rgb = printf "linear-gradient(to bottom right, %s 50%%, %s 50%%)" $rgb1 $rgb2 }}
+{{-   else }}
+{{-     $rgb = $rgb1 }}
+{{-   end }}
+{{- end }}
+{{- return $rgb }}

@@ -51,7 +51,7 @@
                 <legend>{{ with "Choose delivery" }}{{ i18n . | default . }}{{ end }}</legend>
                 {{ range $i, $e := site.Params.shipping }}
                 <div class="row">
-                  <div class="col-6">
+                  <div class="col-9">
                     <input type="radio" id="{{ .name }}" name="delivery"
                            data-delivery-price="{{ .price }}"
                            onchange="selectDelivery(event)"
@@ -59,12 +59,16 @@
                            data-delivery-details-required="{{ with .button}}{{ cond . "true" "false" }}{{ else }}false{{ end }}"
                            value="{{ .name }}">
                     <label for="{{ .name }}">{{ i18n .description | default .description }}</label>
+                    {{ if .details }}
+                    <br>
+                    <small>{{ .details | markdownify }}</small>
+                    {{ end }}
                     {{ if .button }}
                     <br>
                     {{ partial (printf "shipping-%s-button.html" .name) . }}
                     {{ end }}
                   </div>
-                    <div class="col-6 text-right">
+                    <div class="col-3 text-right">
                     {{ if .price }}
                     {{ .price | lang.FormatCurrency 2 (site.Params.currency) }}
                     {{ else }}

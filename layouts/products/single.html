@@ -6,8 +6,31 @@
 {{- $params := partial "utils/get-params" . }}
 {{- $image := partial "utils/get-image" . }}
 {{- $badges := slice }}
+{{- $variants := slice }}
+{{- if and page.Params.Model page.Params.Variant }}
+{{- if page.Params.Colour }}
+{{- $variants = where (where .Parent.Pages "Params.Model" page.Params.Model) "Params.Colour" page.Params.Colour }}
+{{- $variants = $variants | append (
+  where (
+    where (
+      where .Parent.Pages "Params.Model" page.Params.Model
+    ) "Params.Variant" "ne" nil
+  ) "Params.Colour" "eq" nil
+) }}
+{{- else }}
+{{- $variants = where .Parent.Pages "Params.Model" page.Params.Model }}
+{{- end }}
+{{- end }}
 
-<section class="section pt-0 h-product">
+<script>
+  colour_images = [
+  {{ range $image := page.Resources.Match "colours/**"}}
+    {{ $image.RelPermalink }},
+  {{ end }}
+  ]
+</script>
+
+<section class="section pt-0 h-product" itemscope itemtype="https://schema.org/Product">
   <div class="container">
     <div class="row">
       <div class="col-lg-5 mb-4 mb-lg-0">
@@ -15,43 +38,79 @@
         <div class="product-slider">
           {{ $images := partial "utils/get-images" . }}
           {{ range $images }}
-          <div data-image="{{ .RelPermalink }}">
-            <img class="img-fluid w-100 u-photo" src="{{ .RelPermalink }}" alt="product-img">
+          <div data-image="{{ .RelPermalink }}" data-remote="{{ .RelPermalink }}" data-toggle="lightbox" data-gallery="product-images">
+            <img class="img-fluid w-100 u-photo" src="{{ .RelPermalink }}" itemprop="image">
           </div>
           {{ end }}
         </div>
       </div>
       <div class="col-lg-5 offset-lg-1">
-        <h4 class="font-weight-medium p-name">{{ .Title }}</h4>
+        <h4 class="font-weight-medium p-name" itemprop="name">{{ .Title }}
+          {{- if .Params.Variant }}&nbsp;<small class="p-variant-name" data-toggle="tooltip" title="{{ .Params.Variant_Description }}">{{ .Params.Variant }}</small>{{ end }}
+        </h4>
         {{ if .Params.Colour }}
-        <p>{{ partial "utils/get-colour-name" .Params.Colour }}</p>
+        <p itemprop="color">{{ partial "utils/get-colour-name" .Params.Colour }}</p>
         {{ end }}
         <!-- rating star -->
         {{ if site.Params.rating.enable }}
         <div class="rw-ui-container"></div>
         {{ end }}
-        <div class="my-4">
+        <div class="my-4" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
           {{ if .Params.PriceBefore }}
           <s>{{ .Params.PriceBefore | lang.FormatCurrency 2 .Site.Params.currency }}</s>
           {{ end }}
-          <span class="lead text-primary font-weight-medium p-price">{{ .Params.Price | lang.FormatCurrency 2 .Site.Params.currency }}</span>
+          <meta itemprop="priceCurrency" content="{{ .Site.Params.currency }}" />
+          <span class="lead text-primary font-weight-medium p-price" itemprop="price" content="{{ .Params.Price }}">{{ .Params.Price | lang.FormatCurrency 2 .Site.Params.currency }}</span>
+          {{ with $params.condition }}
+          {{ else }}
+          <link itemprop="itemCondition" href="http://schema.org/NewCondition"/>
+          {{ end }}
+          {{ if eq (default false $params.instoreonly) true }}
+            <link itemprop="availableDeliveryMethod" href="http://schema.org/OnSitePickup" />
+            {{ if gt (int .Params.instock) 0 -}}
+            <link itemprop="availability" href="http://schema.org/InStock"/>
+            {{ else }}
+              {{ if eq (default false $params.orderable) true }}
+              <link itemprop="availability" href="http://schema.org/InStock"/>
+              {{ else }}
+              <link itemprop="availability" href="http://schema.org/SoldOut"/>
+              {{ end }}
+            {{- end }}
+          {{ else }}
+            <link itemprop="availableDeliveryMethod" href="http://schema.org/ParcelService" />
+            {{ if gt (int .Params.instock) 0 -}}
+            <link itemprop="availability" href="http://schema.org/InStock"/>
+            {{ else }}
+              {{ if eq (default false $params.orderable) true }}
+              <link itemprop="availability" href="http://schema.org/PreOrder"/>
+              {{ else }}
+              <link itemprop="availability" href="http://schema.org/SoldOut"/>
+              {{ end }}
+            {{- end }}
+          {{ end }}
         </div>
         {{ if .Params.Colour }}
         <div class="my-4 variants-box">
           <h5>{{ with "Colours" }}{{ i18n . | default . }}{{ end }}</h5>
-          <div class="btn-group" role="group" aria-label="{{ with "Colours" }}{{ i18n . | default . }}{{ end }}">
-            {{ range where .Parent.Pages "Title" page.Title }}
+          <div class="btn-group color-buttons" role="group" aria-label="{{ with "Colours" }}{{ i18n . | default . }}{{ end }}">
+            {{ range where .Parent.Pages "Params.Model" page.Params.Model }}
             {{ $active := eq page.Params.Colour .Params.Colour }}
             {{ $page := . }}
+            {{ if eq (path.Dir (path.Clean $page.Permalink)) (path.Clean page.Parent.Permalink) }}
+            <span title="{{ path.Dir (path.Clean $page.RelPermalink) }}={{ path.Clean page.Parent.RelPermalink }}"></span>
             {{ with .Params.Colour }}
             {{ $name := partial "utils/get-colour-name" . }}
             {{ $rgb := partial "utils/get-colour-rgb" . }}
-            <a href="{{ $page.RelPermalink }}"
-              {{ if $active }}class="color-button active"{{ else }}class="color-button"{{ end }}
-              {{ printf "background-color: %s" $rgb | printf "style=%q" | safeHTMLAttr }}
-              {{ printf "alt=%q" $name | safeHTMLAttr }}
+            {{ if and (not $rgb) $images }}
+            {{ $coverimage := index (partial "utils/get-images" $page) 0 }}
+            {{ $rgb = index ($coverimage.Colors) 0 }}
+            {{ end }}
+            <a href="{{ $page.RelPermalink }}" id="colour-{{ $name | anchorize }}"
+              {{ if $active }}class="color-button product-option active"{{ else }}class="color-button product-option"{{ end }}
+              {{ printf "background: %s" $rgb | printf "style=%q" | safeHTMLAttr }}
               {{ printf "title=%q" $name | safeHTMLAttr }}
-              >&nbsp;</a>
+               ><span class="sr-only">{{ $name }}</span></a>
+            {{ end }}
             {{ end }}
             {{ end }}
           </div>
@@ -65,8 +124,8 @@
             {{ $p := split . "(" }}
             {{ $name := index $p 0 }}
             {{ $size := index (split (index $p 1) ")") 0 }}
-            <label class="btn btn-light btn-sizes">
-              <input type="radio" name="size" {{ printf "id=%q" (print "size-" $name) | safeHTMLAttr }}>
+            <label class="btn btn-light btn-sizes product-option">
+              <input type="radio" name="size" {{ printf "id=%q" (print "size-" $name) | safeHTMLAttr }} value="{{ . }}" class="product-option product-option-radio">
                 <span class="size-name">{{ $name }}</span><br><span class="size-detail">{{ $size }}</span>
               </input>
             </label>
@@ -74,9 +133,145 @@
           </div>
         </div>
         {{ end }}
+
+        {{ $colour_swatch := .Params.Colour_Swatch }}
+        {{ range .Params.Options }}
+        {{ if .colours }}
+        <div class="my-4 variants-box">
+          <h5>{{ with "Colours" }}{{ i18n . | default . }}{{ end }}</h5>
+          <div class="btn-group color-buttons" role="group" aria-label="{{ with "Colours" }}{{ i18n . | default . }}{{ end }}">
+            {{ $active := false }}
+            {{ range .colours }}
+            {{ $name := partial "utils/get-colour-name" . }}
+            {{ $rgb := partial "utils/get-colour-rgb" . }}
+            {{ $image_coords := partial "utils/get-colour-image" . }}
+            {{ if and (not $rgb) $images }}
+            {{ $coverimage := index (partial "utils/get-images" page) 0 }}
+            {{ $rgb = index ($coverimage.Colors) 0 }}
+            {{ end }}
+            <input type="radio" name="colour" id="colour-{{ $name | anchorize }}" value="{{ $name }}"
+              class="color-button product-option product-option-radio"
+              {{ if and $colour_swatch $image_coords }}
+                {{ printf "background-repeat: no-repeat; background-image: url(%s); background-position: %s" $colour_swatch $image_coords | printf "style=%q" | safeHTMLAttr }}
+              {{ else }}
+                {{ printf "background: %s" $rgb | printf "style=%q" | safeHTMLAttr }}
+              {{ end }}
+              {{ printf "alt=%q" (i18n $name | default $name) | safeHTMLAttr }}
+              {{ printf "title=%q" (i18n $name | default $name) | safeHTMLAttr }}
+              {{ if eq $.Params.Default_Colour $name }} checked {{ end }}
+               >
+            {{ end }}
+          </div>
+        </div>
+        {{ else }}
+        {{ range $k, $v := . }}
+        <div class="my-4 variants-box">
+          <h5>{{ i18n (humanize $k) | default (humanize $k) }}</h5>
+          <select name="{{ $k }}" id="{{ replace $k " " "-"}}-select" class="product-option product-option-select">
+            {{ range $v }}
+            <option
+              data-image="{{ partial "utils/resize-image" .image }}"
+              data-name="{{ $k }}"
+              data-price="{{ .price | int }}"
+              {{- if .description }}
+              title="{{ i18n .description | default .description }}"
+              {{- end }}
+              {{- if eq .price 0 }}
+              selected
+              {{- end }}
+              data-label="{{ i18n .label | default (i18n (humanize .label)) | default .label }}"
+              value="{{ .label }}"
+              {{- range $k, $v := . }}
+              {{- if in (slice "image" "name" "label" "price" "includes") $k | not | and $v }}
+              {{ printf "data-%s=%q" (replace (anchorize $k) "_" "-") (string $v) | safeHTMLAttr }}
+              {{- end }}
+              {{- end }}
+              {{ if .includes }}data-includes="{{ transform.Remarshal "json" .includes}}"{{ end }}
+            >
+            {{ i18n .label | default (i18n (humanize .label)) | default .label }}{{ if .price }} ({{ if ge .price 0 }}+{{ else }}−{{ end }}{{ .price | math.Abs | lang.FormatCurrency 2 site.Params.currency }}){{ end }}
+            </option>
+            {{ end }}
+          </select>
+        </div>
+        {{ end }}
+        {{ end }}
+        {{ end }}
+
+
+        {{ if gt (len $variants) 1 }}
+        <div class="my-4 variants-box">
+          <h5>{{ with "Variants" }}{{ i18n . | default . }}{{ end }}</h5>
+          <div class="btn-group btn-group-toggle" role="group" aria-label="{{ with "Variants" }}{{ i18n . | default . }}{{ end }}">
+            {{ range $variants }}
+            {{ $page := . }}
+            {{ $p := split $page.Params.Variant "(" }}
+            {{ $name := $page.Params.Variant }}
+            {{ $detail := $page.Params.Variant_Description }}
+            <a href="{{ $page.RelPermalink }}" data-toggle="tooltip" title="{{ $detail }}"
+               {{ if eq page.Params.Variant $page.Params.Variant }}
+               class="btn btn-light btn-sizes active"
+               {{ else }}
+               class="btn btn-light btn-sizes"
+               {{ end }}
+                {{ printf "id=%q" (print "variant-" $name) | safeHTMLAttr }}>
+              <span class="variant-name">{{ $name }}</span>
+            </a>
+
+            {{ end }}
+          </div>
+        </div>
+        {{ end }}
+
+        {{ if .Params.Showroom_Sizes }}
+        <div class="my-4">
+          <i class="text-success ti-check font-weight-boldest"></i>
+          {{ with "In showroom" }}{{ i18n . | default . }}{{ end }}
+        </div>
+        {{ end }}
+
         {{- $badges = $badges | append .Params.Badges }}
         {{ if $badges }}
         <div class="my-4">
+          {{ if .Params.Showroom_Sizes }}
+          <span class="badge badge-success badge-medium">
+            {{ i18n "Available sizes" (dict "Count" (len .Params.Showroom_Sizes) "Sizes" (delimit .Params.Showroom_Sizes ", ")) }}
+          </span>
+          {{ if .Params.Available_In }}
+            <span class="badge badge-info badge-medium">
+              {{ i18n "Available in (other sizes)" (.Params.Available_In | time | time.Format "January 2006") }}
+            </span>
+          {{ else }}
+            {{ if .Params.Lead_Time }}
+            {{ if le .Params.Lead_Time 14 }}
+            <span class="badge badge-info badge-medium">
+              {{ with "Other sizes" }}{{ i18n . | default . }}{{ end }}: {{ i18n "Lead time" (dict "Count" .Params.Lead_Time) | lower }}
+            </span>
+            {{ else }}
+            <span class="badge badge-info badge-medium">
+              {{ with "Other sizes" }}{{ i18n . | default . }}{{ end }}: {{ i18n "Lead time weeks" (dict "Count" (div .Params.Lead_Time 7 | int)) | default (i18n "Lead time" (dict "Count" .Params.Lead_Time)) | lower }}
+            </span>
+            {{ end }}
+            {{ end }}
+          {{ end }}
+          {{ else }}
+          {{ if .Params.Available_In }}
+            <span class="badge badge-info badge-medium">
+              {{ i18n "Available in" (.Params.Available_In | time | time.Format "January 2006") }}
+            </span>
+          {{ else }}
+            {{ if .Params.Lead_Time }}
+            {{ if le .Params.Lead_Time 14 }}
+            <span class="badge badge-info badge-medium">
+              {{ i18n "Lead time" (dict "Count" .Params.Lead_Time) }}
+            </span>
+            {{ else }}
+            <span class="badge badge-info badge-medium">
+              {{ i18n "Lead time weeks" (dict "Count" (div .Params.Lead_Time 7 | int)) | default (i18n "Lead time" (dict "Count" .Params.Lead_Time)) }}
+            </span>
+            {{ end }}
+            {{ end }}
+          {{ end }}
+          {{ end }}
           {{ range $badge := $badges }}
           {{ range $severity, $text := $badge }}
           <span class="badge badge-{{ $severity }} badge-medium">{{ $text }}</span>
@@ -86,65 +281,72 @@
         {{ end }}
 
         <p>{{ .Params.ShortDescription | default .Description | markdownify }}</p>
-        <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
-            "@type": "Product",
-            "name": {{ .Title }},
-            "description": {{ .Params.ShortDescription | default .Description | markdownify }},
-            {{ if .Params.Manufacturer }}
-            "manufacturer": {{ .Params.Manufacturer }},
-            {{ end }}
-            {{ if .Params.EAN }}
-            "gtin13": {{ .Params.EAN }},
-            {{ end }}
-            {{ if .Params.Height }}
-            "height": {{ .Params.Height }},
-            {{ end }}
-            {{ if .Params.Width }}
-            "width": {{ .Params.Width }},
-            {{ end }}
-            {{ if .Params.Size }}
-            "size": {{ .Params.Size }},
-            {{ end }}
-            {{ if .Params.Weight }}
-            "weight": {
-                "@type": "QuantitativeValue",
-                "unitCode": "GRM",
-                "unitText": "g",
-                "value": {{ .Params.Weight }}
-            }
-            {{ end }}
-            "image": {{ $image }},
-            "sku": {{ .Params.ProductID }},
-            "offers": {
-                "@type": "Offer",
-                "price": {{ .Params.Price }},
-                "priceCurrency": {{ .Site.Params.currency }}
-            }
-        }
-        </script>
+        <meta itemprop="sku" content="{{ .Params.ProductID }}" />
+        {{ if .Params.MPN }}
+        <meta itemprop="mpn" content="{{ .Params.MPN }}" />
+        {{ end }}
+        {{ if .Params.EAN }}
+        <meta itemprop="gtin13" content="{{ .Params.EAN }}" />
+        {{ end }}
+        {{ if .Params.Model }}
+        <meta itemprop="model" content="{{ .Params.Model }}" />
+        {{ end }}
+        {{ if .Params.Manufacturer }}
+        <meta itemprop="manufacturer" content="{{ .Params.Manufacturer }}" />
+        {{ end }}
+        {{ if .Params.Height }}
+        <meta itemprop="height" content="{{ .Params.Height }}" />
+        {{ end }}
+        {{ if .Params.Width }}
+        <meta itemprop="width" content="{{ .Params.Width }}" />
+        {{ end }}
+        {{ if .Params.Size }}
+        <meta itemprop="size" content="{{ .Params.Size }}" />
+        {{ end }}
+          {{ range .Params.Sizes }}
+        <meta itemprop="size" content="{{ . }}" />
+        {{ end }}
+        {{ if .Params.Parameters }}
+        {{ if .Params.Parameters.Weight }}
+        {{ $weightValue := index (split .Params.Parameters.Weight " ") 0 }}
+        {{ $weightUnitText := index (split .Params.Parameters.Weight " ") 1 }}
+        {{ $weightUnitCode := index (dict "kg" "KGM" "g" "GRM") $weightUnitText }}
+        <div itemprop="weight" itemscope itemtype="https://schema.org/QuantitativeValue">
+          {{ if $weightUnitCode }}
+          <meta itemprop="unitCode" content="{{ $weightUnitCode }}" />
+          {{ end }}
+          <meta itemprop="value" content="{{ $weightValue }}" />
+        </div>
+        {{ end }}
+        {{ end }}
         <button
           {{ if eq (default false $params.instoreonly) true }}
           class="btn btn-primary"
-          {{ if gt (int $params.instock) 0 }}
+          {{ if or (gt (int $params.instock) 0) $params.Available_In }}
           data-toggle="modal" data-target="#modal-book-test"
           {{ end }}
           {{ else }}
           class="cart-add-item btn btn-primary"
           {{ end }}
-          {{ if and (eq (int $params.instock) 0) (eq (default false $params.orderable) true) }}
+          {{ if and (eq (int $params.instock) 0) (eq (default false $params.orderable) true) (not $params.Available_In) }}
           data-toggle="modal" data-target="#modal-request-order"
           {{ end }}
           data-item-id="{{ .Params.ProductID }}"
+          {{ if .Params.EAN }}
+          data-item-ean="{{ .Params.EAN }}"
+          {{ end }}
           data-item-instock="{{ int $params.instock }}"
-          data-item-name="{{ .Title }}" {{ if .Params.Images }}{{ range first 1 .Params.Images }} data-item-image="{{ $image }}"
-          {{ end }}{{ end }}  data-item-price="{{ .Params.Price }}" data-item-url="{{ .Permalink }}" data-item-description="{{ .Params.ShortDescription | default .Description | markdownify }}">
+          data-item-name="{{ .Title }}" data-item-image="{{ $image }}"
+          data-item-price="{{ .Params.Price }}" data-item-url="{{ .Permalink }}" data-item-description="{{ .Params.ShortDescription | default .Description | markdownify }}">
           {{ if eq (int $params.instock) 0 }}
             {{ if eq (default false $params.orderable) true }}
               {{ with "Request to order" }}{{ i18n . | default . }}{{ end }}
             {{ else }}
-              {{ with "Out of stock" }}{{ i18n . | default . }}{{ end }}
+              {{ if $params.Available_In }}
+                {{ with "Check availability" }}{{ i18n . | default . }}{{ end }}
+              {{ else }}
+                {{ with "Out of stock" }}{{ i18n . | default . }}{{ end }}
+              {{ end }}
             {{ end }}
           {{ else }}
             {{ if eq (default false $params.instoreonly) true }}
@@ -154,16 +356,16 @@
             {{ end }}
           {{ end }}
         </button>
-        <div class="modal fade" id="modal-book-test" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal fade contact-modal" id="modal-book-test" tabindex="-1" role="dialog" aria-hidden="true">
           <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content border-0 rounded-0">
+             <form action="{{ site.Params.contact.formAction }}" method="POST">
               <div class="modal-header">
                 <h5 class="modal-title">{{ with "Book a test (title)" }}{{ i18n . | default . }}{{ end }}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                   <span aria-hidden="true">&times;</span>
                 </button>
               </div>
-              <form action="{{ site.Params.contact.formAction }}" method="POST">
                 <div class="modal-body">
                   <p>{{ with "Book a test (description)" }}{{ i18n . | default . }}{{ end }}</p>
                   <input type="text" class="form-control mb-2" id="name" name="name" placeholder="{{ with "Name" }}{{ i18n . | default . }}{{ end }}">
@@ -173,19 +375,24 @@
                   <input type="hidden" name="item-id" value="{{ .Params.ProductID }}">
                   <input type="hidden" name="item-price" value="{{ .Params.Price }}">
                   <input type="hidden" name="item-colour" value="{{ .Params.Colour }}">
+                  {{ if .Params.Sizes }}
+                  <input type="hidden" name="item-size" value="">
+                  {{ end }}
+                  <input type="hidden" name="item-options" value="">
                   <textarea name="message" id="message" class="form-control mb-2" placeholder="{{ with "Additional notes" }}{{ i18n . | default . }}{{ end }}"></textarea>
                 </div>
                 <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ with "Close" }}{{ i18n . | default . }}{{ end }}</button>
                   <button type="submit" value="send" class="btn btn-primary">{{ with "Send" }}{{ i18n . | default . }}{{ end }}</button>
                 </div>
-              </form>
+             </form>
             </div>
           </div>
         </div>
-        <div class="modal fade" id="modal-request-order" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal fade contact-modal" id="modal-request-order" tabindex="-1" role="dialog" aria-hidden="true">
           <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content border-0 rounded-0">
+             <form action="{{ site.Params.contact.formAction }}" method="POST">
               <div class="modal-header">
                 <h5 class="modal-title">{{ with "Request to order" }}{{ i18n . | default . }}{{ end }}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -194,7 +401,6 @@
               </div>
               <div class="modal-body">
                 <p>{{ with "request-order-description-text" }}{{ i18n . | default . }}{{ end }}</p>
-                <form action="{{ site.Params.contact.formAction }}" method="POST">
                   <input type="text" class="form-control mb-2" id="name" name="name" placeholder="{{ with "Name" }}{{ i18n . | default . }}{{ end }}">
                   <input type="email" class="form-control mb-2" id="email" name="email" placeholder="{{ with "Email" }}{{ i18n . | default . }}{{ end }}">
                   <input type="tel" class="form-control mb-2" id="phone" name="phone" placeholder="+421">
@@ -202,13 +408,17 @@
                   <input type="hidden" name="item-id" value="{{ .Params.ProductID }}">
                   <input type="hidden" name="item-price" value="{{ .Params.Price }}">
                   <input type="hidden" name="item-colour" value="{{ .Params.Colour }}">
+                  {{ if .Params.Sizes }}
+                  <input type="hidden" name="item-size" value="">
+                  {{ end }}
+                  <input type="hidden" name="item-options" value="">
                   <textarea name="message" id="message" class="form-control mb-2" placeholder="{{ with "Additional notes" }}{{ i18n . | default . }}{{ end }}"></textarea>
-                </form>
               </div>
               <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ with "Close" }}{{ i18n . | default . }}{{ end }}</button>
                 <button type="submit" value="send" class="btn btn-primary">{{ with "Send" }}{{ i18n . | default . }}{{ end }}</button>
               </div>
+             </form>
             </div>
           </div>
         </div>
@@ -232,7 +442,7 @@
         </ul>
         <div class="tab-content" id="myTabContent">
           <div class="tab-pane fade show active e-description" id="description" role="tabpanel" aria-labelledby="description-tab">
-            <div class="content">{{ .Content }}</div>
+            <div class="content" itemprop="description">{{ .Content }}</div>
           </div>
           <!--
           <div class="tab-pane fade p-review" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
@@ -243,14 +453,31 @@
             <div class="content">
               <table class="table">
                 <tbody>
-                  {{ range slice "manufacturer" "model" "productID" "EAN" "weight" "maximum_load" "width" "height" "size" }}
-                  {{ if index $params . }}
-                  <tr>
-                    <th scope="row">{{ i18n (humanize .) | default (humanize .) }}</th>
-                    <td>{{ index $params . }}</td>
+                  {{- range slice "manufacturer" "model" "productID" "EAN" "maximum_load" "width" "height" "size" }}
+                  {{- if index $params . }}
+                  <tr itemprop="additionalProperty" itemscope itemtype="https://schema.org/PropertyValue">
+                    <th scope="row" itemprop="name">{{ i18n (humanize .) | default (humanize .) }}</th>
+                    <td itemprop="value">{{ index $params . }}</td>
                   </tr>
                   {{ end }}
                   {{ end }}
+                  {{- $param_keys := slice }}
+                  {{- range $k, $v := $params.Parameters }}
+                  {{- $param_keys = append $param_keys (slice $k) }}
+                  {{- end }}
+                  {{ range $param := intersect site.Params.ParameterOrder $param_keys }}
+                  <tr itemprop="additionalProperty" itemscope itemtype="https://schema.org/PropertyValue">
+                    <th scope="row" itemprop="name">{{ i18n (humanize $param) | default (humanize $param) }}</th>
+                    <td itemprop="value">{{ index $params.Parameters $param }}</td>
+                  </tr>
+                  {{ end }}
+                  {{ range $param := complement site.Params.ParameterOrder $param_keys }}
+                  <tr itemprop="additionalProperty" itemscope itemtype="https://schema.org/PropertyValue">
+                    <th scope="row" itemprop="name">{{ i18n (humanize $param) | default (humanize $param) }}</th>
+                    <td itemprop="value">{{ i18n (index $params.Parameters $param | humanize) | default (index $params.Parameters $param) }}</td>
+                  </tr>
+                  {{ end }}
+
                 </tbody>
               </table>
             </div>

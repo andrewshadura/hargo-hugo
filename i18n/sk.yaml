@@ -38,17 +38,162 @@ Your Name:
   other: Vaše meno
 Your Email:
   other: Emailová adresa
+Message:
+  other: Správa
 Your Message:
   other: Vaša správa
 Send Now:
   other: Odoslať
+Contact:
+  other: Kontakt
 Connect with us:
-  other: Kontakty
+  other: Kontakt
 Description:
   other: Popis
 Reviews:
   other: Hodnotenia
 This category is currently empty, but we’re working hard to prepare it for you!:
-  other: Táto kategória je momentálne v priprave
+  other: Kategóriu momentálne pripravujeme
 Products List:
   other: V našej ponuke
+In showroom:
+  other: Na predajni
+Out of stock:
+  other: Vypredané
+Check availability:
+  other: Opýtať sa
+Available in:
+  other: Dostupné od {{ . }}
+Available in (other sizes):
+  other: 'Iné veľkosti: od {{ . }}'
+Available sizes:
+  one: 'Dostupné hneď: veľkosť {{ .Sizes }}'
+  other: 'Dostupné hneď: veľkosti {{ .Sizes }}'
+Lead time:
+  other: 'Na objednávku do {{ .Count }} dní'
+Lead time weeks:
+  other: 'Na objednávku do {{ .Count }} týždňov'
+Lead time other sizes:
+  other: 'Iné veľkosti: na objednávku do {{ .Count }} dní'
+Other sizes:
+  other: Iné veľkosti
+White:
+  other: Biela
+Yellow:
+  other: Žltá
+Brown:
+  other: Hnedá
+Black:
+  other: Čierna
+Red:
+  other: Červená
+Green:
+  other: Zelená
+Grey:
+  other: Šedá
+Orange:
+  other: Oranžová
+Blue:
+  other: Modrá
+Pink:
+  other: Ružová
+Dark brown:
+  other: Tmavohnedá
+More colours available:
+  one: 'Dostupná ešte jedna farba'
+  few: 'Dostupné ešte {{ .Count }} farby'
+  other: 'Dostupné ešte {{ .Count }} farieb'
+Read more:
+  other: Čítať viac
+Colours:
+  other: Farby
+Sizes:
+  other: Veľkosti
+Variants:
+  other: Varianty
+Products List:
+  other: V našej ponuke
+See more products:
+  other: Pozrieť celú ponuku
+Book a test:
+  other: Mám záujem
+Book a test (title):
+  other: Opýtať sa na tovar
+Book a test (description):
+  other: Máte záujem o tento tovar a chceli by ste ho vyskúšať? Kontaktujte nás prostredníctvom formulára
+request-order-description-text:
+  other: Tento tovar momentálne nemáme na sklade, ale vieme ho na požiadanie objednať od dodávateľa. Pre objednanie kontaktujte nás prostredníctvom formulára
+Name:
+  other: Meno
+Additional notes:
+  other: Vaša otázka
+Close:
+  other: Zavrieť
+Send:
+  other: Odoslať
+Specifications:
+  other: Parametre
+Maximum load:
+  other: Maximálna nosnosť
+Weight:
+  other: Hmotnosť
+Width:
+  other: Širka
+Height:
+  other: Výška
+Size:
+  other: Veľkosť
+Variant:
+  other: Variant
+Manufacturer:
+  other: Výrobca
+Product ID:
+  other: Kód výrobku
+Ean:
+  other: EAN
+Frame material:
+  other: Materiál rámu
+Frame type:
+  other: Typ rámu
+Wheel size:
+  other: Veľkosť kolies
+Front light:
+  other: Predné svetlo
+Rear light:
+  other: Zadné svetlo
+Lock:
+  other: Zámok
+Kickstand:
+  other: Stojan
+Saddle:
+  other: Sedlo
+Handles:
+  other: Rukoväte
+Front carrier:
+  other: Predný nosič
+Rear carrier:
+  other: Zadný nosič
+Steering lock:
+  other: Zámok riadenia
+Gears:
+  other: Prevody
+Bell:
+  other: Zvonček
+Front brake:
+  other: Predné brzdy
+Rear brake:
+  other: Zadné brzdy
+Tyres:
+  other: Plášte
+Power supply:
+  other: Zdroj energie
+Solar energy:
+  other: Solárna energia
+Mudguard:
+  other: Blatník
+Mounting:
+  other: Montáž
+Battery:
+  other: Batéria
+Charger:
+  other: Nabíjačka

@@ -2,11 +2,76 @@
 
 {{ partial "page-title.html" . }}
 
+{{- $pages := .Pages }}
+{{- range .Translations }}
+{{- $pages = $pages | lang.Merge .Pages }}
+{{- end }}
+{{- $truncated := and .Truncated (not .Params.DontTruncate) }}
+
 <section class="section pt-0">
   <div class="container">
+    {{ if .PlainWords }}
+    <div class="row mb-5">
+      <div class="col-12" id="maintext-holder">
+<style>
+#maintext.content {
+  min-height: 6lh;
+}
+
+#maintext.content.collapse:not(.show) {
+  display: block !important;
+  height: 6lh;
+  overflow: hidden
+}
+#maintext.content.collapse:not(.show)::after {
+  height: 3lh;
+  background: linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}
+
+#maintext-holder ~ button:not(.collapsed) {
+  display: none;
+}
+</style>
+
+        <div class="content {{ if and $truncated $pages }}collapse{{ end }}" id="maintext">
+          {{ .Content }}
+        </div>
+      </div> 
+      {{- if and $truncated $pages }}
+        <button class="btn collapsed" type="button" data-toggle="collapse" data-target="#maintext" class="collapsed">
+          {{ with "Read more" }}{{ i18n . | default . }}{{ end }}
+        </button>
+      {{- end }}
+
+
+
+    </div>
+    {{ end }}
     <div class="row">
-      {{ range .Data.Pages }}
-      {{ if site.Params.showProductSections | or (not .IsSection) }}
+      <div style="display: none;">
+        <pre>
+          {{ range page.AllTranslations }}
+          {{ . }}
+          {{ end }}
+        </pre>
+      </div>
+      {{- $pages_first := sort (where $pages "Weight" "ge" 1 ) "Weight" }}
+      {{- $pages_other := where $pages "Weight" "in" (slice 0 nil) }}
+      {{- if .Params.sortOrder }}
+      {{- $sortOrder := split .Params.sortOrder " " }}
+      {{- $pages_other = $pages_other.ByParam (index $sortOrder 0) }}
+      {{- if eq (index $sortOrder 1) "desc" }}
+      {{- $pages_other = $pages_other.Reverse }}
+      {{- end }}
+      {{- end }}
+      {{- $pages = append $pages_other $pages_first }}
+      {{- range $pages }}
+      {{- if site.Params.showProductSections | or (not .IsSection) }}
+      {{- if or (gt (int .Params.instock) 0) (eq (default false .Params.orderable) true) }}
       {{- $image := partial "utils/get-image" . }}
       {{- $params := partial "utils/get-params" . }}
       {{- $defaultStock := 100 }}
@@ -16,11 +81,49 @@
             <img src="{{ $image }}" alt="{{ .Title }}" class="card-img-top">
           </a>
           <div class="card-body">
-            <a href="{{ .Permalink }}" class="h4">{{ .Title }}</a>
+            <a href="{{ .Permalink }}" class="h4">{{ .Title }}
+              {{- if .Params.Variant }}&nbsp;<small>{{ .Params.Variant }}</small>{{ end }}
+            </a>
             {{ if .Params.Colour }}
-            <p>{{ partial "utils/get-colour-name" .Params.Colour }}</p>
+            <p class="m-0">{{ partial "utils/get-colour-name" .Params.Colour }}</p>
+            {{ else }}
+            {{ $colour_swatch := .Params.Colour_Swatch }}
+            {{ range .Params.Options }}
+              {{ if .colours }}
+              {{ if gt (len .colours) 1 }}
+              <p class="m-0">
+              {{- range last (cond (gt (len .colours) 3) 2 3) .colours }}
+              {{- $name := partial "utils/get-colour-name" . }}
+              {{- $rgb := partial "utils/get-colour-rgb" . }}
+              {{- $image_coords := partial "utils/get-colour-image" . }}
+              <span
+                class="color-button d-inline-block m-0"
+                {{ if and $colour_swatch $image_coords }}
+                  {{ printf "background-repeat: no-repeat; background-image: url(%s); background-position: %s" $colour_swatch $image_coords | printf "style=%q" | safeHTMLAttr }}
+                {{ else }}
+                  {{ printf "background: %s" $rgb | printf "style=%q" | safeHTMLAttr }}
+                {{ end }}
+                {{ printf "title=%q" $name | safeHTMLAttr }}
+                ></span>
+              {{- end }}
+              {{- if gt (len .colours) 3 }}
+              <span
+                class="color-button d-inline-block m-0"
+                style="box-shadow: inset 0 0 0 1px #888; padding: 4px; font-size: 13px;"
+                {{ $ncolours := sub (len .colours) 2 }}
+                {{ $scolours := "More colours available" }}
+                alt="{{ i18n $scolours (dict "Count" $ncolours) | default $scolours }}"
+                title="{{ i18n $scolours (dict "Count" $ncolours) | default $scolours }}"
+                >+{{ $ncolours }}</span>
+              {{- end }}
+              </p>
+              {{ end }}
+              {{ end }}
             {{ end }}
-            <p>{{ .Params.Description }}</p>
+            {{ end }}
+            {{ if .Params.Description }}
+            <p class="m-0">{{ .Params.Description }}</p>
+            {{ end }}
             {{ if .Params.Price }}
             <div class="mb-4">
               {{ if .Params.PriceBefore }}
@@ -37,6 +140,9 @@
               {{ end }}
               data-item-id="{{ .Params.ProductID }}"
               data-item-name="{{ .Title }}" data-item-image="{{ $image }}"
+              {{ if .Params.EAN }}
+              data-item-ean="{{ .Params.EAN }}"
+              {{ end }}
               data-item-instock="{{ $params.instock | default $defaultStock }}"
               {{ if eq (int (default $defaultStock $params.instock)) 0 }}disabled{{ end }}
               data-item-price="{{ .Params.Price }}" data-item-url="{{ .Permalink }}" data-item-description="{{ .Description }}">
@@ -56,10 +162,20 @@
         </div>
       </div>
       {{ end }}
+      {{ end }}
       {{ else }}
       <div class="col">
-        <div class="card border-0 text-center">
+        <div class="card border-0 text-center font-weight-bold">
       {{ with "This category is currently empty, but we’re working hard to prepare it for you!" }}{{ i18n . | default . }}{{ end }}
+        </div>
+      </div>
+      {{ end }}
+      {{ if .Params.Footer }}
+    </div>
+    <div class="row">
+      <div class="col">
+        <div class="border-0 text-color text-center">
+          {{ .Params.Footer | markdownify }}
         </div>
       </div>
       {{ end }}

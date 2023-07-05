@@ -6,13 +6,16 @@
         <ITEM_ID>{{ .Params.productID }}</ITEM_ID>
         <PRODUCTNAME>{{ .Name }}</PRODUCTNAME>
         <PRODUCT>{{ .Name }}</PRODUCT>
-        <DESCRIPTION>{{ .Params.description }}</DESCRIPTION>
+        <DESCRIPTION>{{ with .Description }}{{ . }}{{ else }}{{ .Summary }}{{ end }}</DESCRIPTION>
         <URL>{{ .Permalink | absURL }}</URL>
         <IMGURL>{{ $image }}</IMGURL>
-        <PRICE_VAT>{{ .Params.price }}</PRICE_VAT>
+        {{ if .Params.EAN }}
+        <EAN>{{ .Params.EAN }}</EAN>
+        {{ end }}
+        <PRICE_VAT>{{ .Params.Price }}</PRICE_VAT>
         {{- $params := partial "utils/get-params" . }}
-        <CATEGORYTEXT>{{ $params.heurekacategory }}</CATEGORYTEXT>
-        <MANUFACTURER>{{ $params.manufacturer }}</MANUFACTURER>
+        <CATEGORYTEXT>{{ .Params.Heurekacategory }}</CATEGORYTEXT>
+        <MANUFACTURER>{{ .Params.Manufacturer }}</MANUFACTURER>
     </SHOPITEM>
 {{- end }}
 </SHOP>

@@ -6,12 +6,12 @@
             alt="{{ site.Title }}"></a>
       </div>
     </div>
-    <div class="row border-bottom pb-5 justify-content-between">
+    <div class="row border-bottom pt-3 pb-5 justify-content-between">
       <div class="col-md-3 col-sm-6">
         <h5 class="font-weight-medium mb-4">{{ with "Important links" }}{{ i18n . | default . }}{{ end }}</h5>
         <ul class="list-unstyled">
           {{ range site.Menus.footer }}
-          <li class="mb-3"><a class="text-color" href="{{ .URL | absURL }}">{{ .Name }}</a></li>
+          <li class="mb-3"><a class="text-color" href="{{ .URL | absURL }}">{{ i18n .Name | default .Name }}</a></li>
           {{ end }}
         </ul>
       </div>
@@ -25,6 +25,9 @@
                 class="ti-email text-primary mr-2"></i> {{ site.Params.email }}</a></li>
           <li class="mb-3"><i class="ti-location-pin text-primary mr-2"></i> {{ site.Params.location }}
           </li>
+          {{ range site.Params.extralinks }}
+          <li class="mb-3"><a class="text-color" {{ if .rel }}rel="{{ .rel }}" {{ end }}href="{{ .link }}"><i class="ti-link text-primary mr-2"></i> {{ with urls.Parse .link }}{{ .Hostname }}{{ end }}</a></li>
+          {{ end }}
         </ul>
         <!-- Social Icons -->
         <ul class="list-inline">
@@ -38,7 +41,7 @@
         <form action="{{ site.Params.contact.formAction }}" method="POST">
           <input type="text" class="form-control mb-2" id="name" name="name" placeholder="{{ with "Name" }}{{ i18n . | default . }}{{ end }}">
           <input type="email" class="form-control mb-2" id="email" name="email" placeholder="{{ with "Email" }}{{ i18n . | default . }}{{ end }}">
-          <textarea name="message" id="message" class="form-control mb-2" placeholder="{{ with "Message" }}{{ i18n . | default . }}{{ end }}"></textarea>
+          <textarea name="message" id="message" class="form-control mb-2" placeholder="{{ with "Your Message" }}{{ i18n . | default . }}{{ end }}"></textarea>
           <button type="submit" value="send" class="btn btn-block btn-outline-primary rounded">{{ with "Send" }}{{ i18n . | default . }}{{ end }}</button>
         </form>
       </div>
